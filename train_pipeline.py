@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 np.random.seed(42)
 tf.random.set_seed(42)
 
-PLOTS = "plots"
+PLOTS = "static/images"
 ARTIFACTS = "model_artifacts"
 os.makedirs(PLOTS, exist_ok=True)
 os.makedirs(ARTIFACTS, exist_ok=True)
