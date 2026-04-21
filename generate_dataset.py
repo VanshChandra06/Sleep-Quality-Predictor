@@ -173,6 +173,6 @@ for col in ["Caffeine_mg", "Alcohol_Units", "Exercise_Days_Per_Week", "Screen_Ti
     mask = np.random.rand(N) < 0.05
     df.loc[mask, col] = np.nan
 
-df.to_csv("/home/claude/sleep_predictor/sleep_dataset.csv", index=False)
+df.to_csv("sleep_dataset.csv", index=False)
 print(f"Dataset saved: {len(df)} rows x {len(df.columns)} columns")
 print(df.describe())

@@ -30,8 +30,8 @@ warnings.filterwarnings("ignore")
 np.random.seed(42)
 tf.random.set_seed(42)
 
-PLOTS = "/home/claude/sleep_predictor/plots"
-ARTIFACTS = "/home/claude/sleep_predictor/model_artifacts"
+PLOTS = "plots"
+ARTIFACTS = "model_artifacts"
 os.makedirs(PLOTS, exist_ok=True)
 os.makedirs(ARTIFACTS, exist_ok=True)
 
@@ -42,7 +42,7 @@ print("=" * 60)
 print("  SLEEP QUALITY PREDICTOR — ML PIPELINE")
 print("=" * 60)
 
-df = pd.read_csv("/home/claude/sleep_predictor/sleep_dataset.csv")
+df = pd.read_csv("sleep_dataset.csv")
 print(f"\n[1] Dataset loaded: {df.shape[0]} rows × {df.shape[1]} columns")
 print(f"    Missing values per column:\n{df.isnull().sum()[df.isnull().sum()>0]}")
 

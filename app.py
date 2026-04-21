@@ -14,18 +14,23 @@ from tensorflow import keras
 app = Flask(__name__)
 
 # ── Load artefacts ──────────────────────────────────────────
-BASE = "/home/claude/sleep_predictor/model_artifacts"
+# BASE = "/home/claude/sleep_predictor/model_artifacts"
 
-scaler   = joblib.load(f"{BASE}/scaler.pkl")
-imputer  = joblib.load(f"{BASE}/imputer.pkl")
-features = joblib.load(f"{BASE}/features.pkl")
-inf_type = joblib.load(f"{BASE}/inference_model_type.pkl")
+# scaler   = joblib.load(f"{BASE}/scaler.pkl")
+# imputer  = joblib.load(f"{BASE}/imputer.pkl")
+# features = joblib.load(f"{BASE}/features.pkl")
+# inf_type = joblib.load(f"{BASE}/inference_model_type.pkl")
+
+scaler   = joblib.load(f"model_artifacts/scaler.pkl")
+imputer  = joblib.load(f"model_artifacts/imputer.pkl")
+features = joblib.load(f"model_artifacts/features.pkl")
+inf_type = joblib.load(f"model_artifacts/inference_model_type.pkl")
 
 if inf_type == "nn":
-    model = keras.models.load_model(f"{BASE}/neural_network.keras")
+    model = keras.models.load_model(f"model_artifacts/neural_network.keras")
     model_name = "Neural Network"
 else:
-    model = joblib.load(f"{BASE}/best_classical_model.pkl")
+    model = joblib.load(f"model_artifacts/best_classical_model.pkl")
     model_name = "Gradient Boosting"
 
 print(f"[app] Using {model_name} for inference.")
@@ -189,7 +194,8 @@ def predict():
 @app.route("/plots")
 def plots():
     plot_files = sorted([
-        f for f in os.listdir("/home/claude/sleep_predictor/plots")
+        # f for f in os.listdir("/home/claude/sleep_predictor/plots")
+        f for f in os.listdir("plots")
         if f.endswith(".png")
     ])
     return jsonify(plot_files)
@@ -202,4 +208,4 @@ if __name__ == "__main__":
 @app.route("/plot/<filename>")
 def serve_plot(filename):
     from flask import send_from_directory
-    return send_from_directory("/home/claude/sleep_predictor/plots", filename)
+    return send_from_directory("plots", filename)
