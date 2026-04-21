@@ -6,8 +6,7 @@ Sleep efficiency, REM sleep %, Deep sleep %, Light sleep %,
 Awakenings, Caffeine consumption, Alcohol consumption,
 Smoking status, Exercise frequency, and a derived Sleep Quality score.
 
-We also extend it with Screen time before bed (minutes) to align with
-the user-facing predictor requirements.
+We also extend it with Screen time before bed (minutes).
 """
 
 import numpy as np

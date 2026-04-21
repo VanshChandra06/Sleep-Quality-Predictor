@@ -14,13 +14,6 @@ from tensorflow import keras
 app = Flask(__name__)
 
 # ── Load artefacts ──────────────────────────────────────────
-# BASE = "/home/claude/sleep_predictor/model_artifacts"
-
-# scaler   = joblib.load(f"{BASE}/scaler.pkl")
-# imputer  = joblib.load(f"{BASE}/imputer.pkl")
-# features = joblib.load(f"{BASE}/features.pkl")
-# inf_type = joblib.load(f"{BASE}/inference_model_type.pkl")
-
 scaler   = joblib.load(f"model_artifacts/scaler.pkl")
 imputer  = joblib.load(f"model_artifacts/imputer.pkl")
 features = joblib.load(f"model_artifacts/features.pkl")
@@ -194,7 +187,6 @@ def predict():
 @app.route("/plots")
 def plots():
     plot_files = sorted([
-        # f for f in os.listdir("/home/claude/sleep_predictor/plots")
         f for f in os.listdir("static/images")
         if f.endswith(".png")
     ])
