@@ -195,7 +195,7 @@ def predict():
 def plots():
     plot_files = sorted([
         # f for f in os.listdir("/home/claude/sleep_predictor/plots")
-        f for f in os.listdir("plots")
+        f for f in os.listdir("static/images")
         if f.endswith(".png")
     ])
     return jsonify(plot_files)
@@ -208,4 +208,4 @@ if __name__ == "__main__":
 @app.route("/plot/<filename>")
 def serve_plot(filename):
     from flask import send_from_directory
-    return send_from_directory("plots", filename)
+    return send_from_directory("static/images", filename)
