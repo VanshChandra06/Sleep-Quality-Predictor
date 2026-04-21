@@ -24,7 +24,10 @@ from sklearn.pipeline import Pipeline
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers, callbacks
+# Access layers and callbacks from the already-imported keras to avoid
+# static analysis issues with `tensorflow.keras` submodule resolution.
+layers = keras.layers
+callbacks = keras.callbacks
 
 warnings.filterwarnings("ignore")
 np.random.seed(42)
