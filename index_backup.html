@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sleep Quality Predictor</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #7c6af7;
+    --accent2: #56b4f7;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --green: #27ae60;
+    --yellow: #f39c12;
+    --red: #e74c3c;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ────────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, #1a1040 0%, #0d1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .logo { font-size: 2.2rem; }
+  header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+  header p  { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+  .model-badge {
+    margin-left: auto;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── LAYOUT ────────────────────────────────────── */
+  .main {
+    max-width: 1100px;
+    margin: 36px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 28px;
+  }
+
+  /* ── CARDS ─────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+  .card-title {
+    font-size: 1.05rem; font-weight: 700;
+    margin-bottom: 22px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-title span { font-size: 1.3rem; }
+
+  /* ── FORM ──────────────────────────────────────── */
+  .section-label {
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent2);
+    margin: 20px 0 12px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 0.82rem; color: var(--muted); font-weight: 500;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 5px;
+    border-radius: 5px;
+    background: var(--surface2);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+  .slider-val {
+    min-width: 52px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+    text-align: center;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.88rem;
+    width: 100%;
+  }
+  .toggle-row { display: flex; gap: 10px; }
+  .toggle-btn {
+    flex: 1; padding: 9px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all .2s;
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* predict btn */
+  .btn-predict {
+    width: 100%; margin-top: 24px;
+    padding: 16px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border: none; border-radius: 12px;
+    color: #fff; font-size: 1rem; font-weight: 700;
+    cursor: pointer; letter-spacing: .04em;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-predict:hover { opacity: .9; transform: translateY(-1px); }
+  .btn-predict:active { transform: translateY(0); }
+  .btn-predict:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── RIGHT PANEL ────────────────────────────────── */
+  .right-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Score gauge */
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+  }
+  .gauge-wrap { position: relative; width: 200px; margin: 0 auto 16px; }
+  #gauge-svg { width: 200px; height: 120px; }
+  .score-number {
+    font-size: 3.2rem; font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: color .5s;
+  }
+  .score-label {
+    font-size: 1.05rem; font-weight: 600;
+    margin-top: 4px; margin-bottom: 6px;
+    transition: color .5s;
+  }
+  .score-sub { font-size: 0.8rem; color: var(--muted); }
+  .placeholder-msg { color: var(--muted); font-size: 0.9rem; padding: 20px 0; }
+
+  /* Bars */
+  .factor-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .factor { display: flex; flex-direction: column; gap: 4px; }
+  .factor-header { display: flex; justify-content: space-between; font-size: 0.8rem; }
+  .factor-name { color: var(--muted); }
+  .factor-val { font-weight: 600; }
+  .bar-bg {
+    height: 7px; background: var(--surface2);
+    border-radius: 4px; overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width .8s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* Recommendations */
+  .reco-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .reco-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .reco-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .reco-cat { font-size: 0.72rem; color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .reco-tip { font-size: 0.83rem; color: var(--text); margin-top: 2px; line-height: 1.45; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab {
+    flex: 1; padding: 8px 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted);
+    cursor: pointer; font-size: 0.8rem; text-align: center;
+    transition: all .2s;
+  }
+  .tab.active {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 700;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Spinner */
+  .spinner {
+    width: 22px; height: 22px;
+    border: 3px solid rgba(255,255,255,.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none; margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; }
+    .model-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌙</div>
+  <div>
+    <h1>Sleep Quality Predictor</h1>
+    <p>ML-powered analysis of your sleep habits</p>
+  </div>
+  <div class="model-badge">⚡ {{ model_name }}</div>
+</header>
+
+<div class="main">
+
+  <!-- ── LEFT: INPUT FORM ───────────────────────── -->
+  <div class="card">
+    <div class="card-title"><span>🎛️</span> Your Sleep Parameters</div>
+
+    <div class="section-label">🛏️ Sleep Schedule</div>
+    <div class="grid2">
+      <div class="field">
+        <label>⏱ Sleep Duration (hours)</label>
+        <div class="slider-row">
+          <input type="range" id="sleep_hours" min="3" max="12" step="0.5" value="7"
+                 oninput="updateVal('sleep_hours','h')"/>
+          <span class="slider-val" id="sleep_hours_val">7.0h</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>🌙 Bedtime</label>
+        <select id="bedtime_hour">
+          <option value="21">9:00 PM</option>
+          <option value="22" selected>10:00 PM</option>
+          <option value="23">11:00 PM</option>
+          <option value="0">12:00 AM (Midnight)</option>
+          <option value="1">1:00 AM</option>
+          <option value="2">2:00 AM</option>
+          <option value="3">3:00 AM</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">☕ Substances</div>
+    <div class="grid2">
+      <div class="field">
+        <label>☕ Caffeine before bed (mg)</label>
+        <div class="slider-row">
+          <input type="range" id="caffeine_mg" min="0" max="400" step="25" value="50"
+                 oninput="updateVal('caffeine_mg','mg')"/>
+          <span class="slider-val" id="caffeine_mg_val">50mg</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>🍷 Alcohol (units)</label>
+        <div class="slider-row">
+          <input type="range" id="alcohol_units" min="0" max="6" step="1" value="0"
+                 oninput="updateVal('alcohol_units','u')"/>
+          <span class="slider-val" id="alcohol_units_val">0u</span>
+        </div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>🚬 Smoking Status</label>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="smoke_no" onclick="setSmoking(0)">Non-smoker</button>
+        <button class="toggle-btn" id="smoke_yes" onclick="setSmoking(1)">Smoker</button>
+      </div>
+    </div>
+
+    <div class="section-label">🏃 Lifestyle</div>
+    <div class="grid2">
+      <div class="field">
+        <label>🏋️ Exercise (days/week)</label>
+        <div class="slider-row">
+          <input type="range" id="exercise_days" min="0" max="7" step="1" value="3"
+                 oninput="updateVal('exercise_days','d')"/>
+          <span class="slider-val" id="exercise_days_val">3d</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>📱 Screen time before bed (min)</label>
+        <div class="slider-row">
+          <input type="range" id="screen_time_min" min="0" max="180" step="15" value="60"
+                 oninput="updateVal('screen_time_min','m')"/>
+          <span class="slider-val" id="screen_time_min_val">60m</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">👤 About You</div>
+    <div class="grid2">
+      <div class="field">
+        <label>🎂 Age</label>
+        <div class="slider-row">
+          <input type="range" id="age" min="16" max="75" step="1" value="28"
+                 oninput="updateVal('age','yr')"/>
+          <span class="slider-val" id="age_val">28yr</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>⚧ Gender</label>
+        <div class="toggle-row">
+          <button class="toggle-btn" id="gender_female" onclick="setGender('Female')">Female</button>
+          <button class="toggle-btn active" id="gender_male" onclick="setGender('Male')">Male</button>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="field">
+        <label>😴 Typical night awakenings</label>
+        <div class="slider-row">
+          <input type="range" id="awakenings" min="0" max="5" step="1" value="1"
+                 oninput="updateVal('awakenings','×')"/>
+          <span class="slider-val" id="awakenings_val">1×</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-predict" id="predict-btn" onclick="predict()">
+      <span id="btn-text">🔮 Predict My Sleep Quality</span>
+      <div class="spinner" id="btn-spinner"></div>
+    </button>
+  </div>
+
+  <!-- ── RIGHT PANEL ────────────────────────────── -->
+  <div class="right-panel">
+
+    <!-- Score card -->
+    <div class="score-card" id="score-card">
+      <div id="result-placeholder" class="placeholder-msg">
+        Fill in your details and click predict to see your sleep quality score.
+      </div>
+      <div id="result-content" style="display:none">
+        <svg id="gauge-svg" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#e74c3c"/>
+              <stop offset="50%" stop-color="#f39c12"/>
+              <stop offset="100%" stop-color="#27ae60"/>
+            </linearGradient>
+          </defs>
+          <!-- background arc -->
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#21262d" stroke-width="14" stroke-linecap="round"/>
+          <!-- value arc -->
+          <path id="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none"
+                stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round"
+                stroke-dasharray="251.3" stroke-dashoffset="251.3"
+                style="transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)"/>
+          <!-- needle -->
+          <line id="gauge-needle" x1="100" y1="100" x2="100" y2="28"
+                stroke="white" stroke-width="2.5" stroke-linecap="round"
+                style="transform-origin: 100px 100px; transition: transform 1s cubic-bezier(.4,0,.2,1)"/>
+          <circle cx="100" cy="100" r="6" fill="white"/>
+        </svg>
+        <div class="score-number" id="score-num">—</div>
+        <div class="score-label" id="score-label">—</div>
+        <div class="score-sub">out of 10 · predicted by <span id="model-tag">—</span></div>
+      </div>
+    </div>
+
+    <!-- Tabs: factors / recommendations -->
+    <div class="card" id="detail-card" style="display:none">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('factors')">📊 Factors</div>
+        <div class="tab" onclick="switchTab('reco')">💡 Recommendations</div>
+      </div>
+      <div class="tab-panel active" id="tab-factors">
+        <div class="factor-bars" id="factor-bars"></div>
+      </div>
+      <div class="tab-panel" id="tab-reco">
+        <div class="reco-list" id="reco-list"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let smokingVal = 0;
+let genderVal  = "Male";
+
+function updateVal(id, suffix) {
+  const v = document.getElementById(id).value;
+  document.getElementById(id + "_val").textContent = v + suffix;
+}
+
+function setSmoking(v) {
+  smokingVal = v;
+  document.getElementById("smoke_no").classList.toggle("active", v === 0);
+  document.getElementById("smoke_yes").classList.toggle("active", v === 1);
+}
+
+function setGender(v) {
+  genderVal = v;
+  document.getElementById("gender_female").classList.toggle("active", v === "Female");
+  document.getElementById("gender_male").classList.toggle("active", v === "Male");
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    const names = ["factors", "reco"];
+    t.classList.toggle("active", names[i] === tab);
+  });
+  document.getElementById("tab-factors").classList.toggle("active", tab === "factors");
+  document.getElementById("tab-reco").classList.toggle("active", tab === "reco");
+}
+
+async function predict() {
+  const btn = document.getElementById("predict-btn");
+  const spinner = document.getElementById("btn-spinner");
+  const btnText = document.getElementById("btn-text");
+  btn.disabled = true;
+  btnText.style.display = "none";
+  spinner.style.display = "block";
+
+  const payload = {
+    sleep_hours:    parseFloat(document.getElementById("sleep_hours").value),
+    bedtime_hour:   parseInt(document.getElementById("bedtime_hour").value),
+    caffeine_mg:    parseFloat(document.getElementById("caffeine_mg").value),
+    exercise_days:  parseInt(document.getElementById("exercise_days").value),
+    screen_time_min: parseFloat(document.getElementById("screen_time_min").value),
+    alcohol_units:  parseFloat(document.getElementById("alcohol_units").value),
+    smoking:        smokingVal,
+    gender:         genderVal,
+    age:            parseInt(document.getElementById("age").value),
+    awakenings:     parseInt(document.getElementById("awakenings").value),
+  };
+
+  try {
+    const res  = await fetch("/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) { alert("Error: " + data.error); return; }
+    showResult(data, payload);
+  } catch(e) {
+    alert("Network error: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = "";
+    spinner.style.display = "none";
+  }
+}
+
+function showResult(data, payload) {
+  document.getElementById("result-placeholder").style.display = "none";
+  document.getElementById("result-content").style.display = "block";
+  document.getElementById("detail-card").style.display = "block";
+
+  // Score number
+  const numEl = document.getElementById("score-num");
+  numEl.textContent = data.score.toFixed(1);
+  numEl.style.color = data.color;
+
+  const lblEl = document.getElementById("score-label");
+  lblEl.textContent = data.label;
+  lblEl.style.color = data.color;
+
+  document.getElementById("model-tag").textContent = data.model;
+
+  // Gauge arc
+  const arc = document.getElementById("gauge-arc");
+  const total = 251.3;
+  const pct = (data.score - 1) / 9;
+  arc.style.strokeDashoffset = total * (1 - pct);
+
+  // Needle
+  const needle = document.getElementById("gauge-needle");
+  const deg = -90 + pct * 180;
+  needle.style.transform = `rotate(${deg}deg)`;
+
+  // Factor bars
+  const factors = [
+    { name: "Sleep Duration",   val: payload.sleep_hours,      max: 10,  unit: "h",   good_range: [7,9] },
+    { name: "Caffeine Intake",  val: payload.caffeine_mg,      max: 400, unit: "mg",  invert: true },
+    { name: "Exercise",         val: payload.exercise_days,    max: 7,   unit: "d/wk" },
+    { name: "Screen Time",      val: payload.screen_time_min,  max: 180, unit: "min", invert: true },
+    { name: "Night Awakenings", val: payload.awakenings,       max: 5,   unit: "×",   invert: true },
+  ];
+
+  const barsHtml = factors.map(f => {
+    const pct = Math.min(100, (f.val / f.max) * 100);
+    const dispPct = f.invert ? (100 - pct) : pct;
+    const color = dispPct >= 65 ? "#27ae60" : dispPct >= 40 ? "#f39c12" : "#e74c3c";
+    return `<div class="factor">
+      <div class="factor-header">
+        <span class="factor-name">${f.name}</span>
+        <span class="factor-val" style="color:${color}">${f.val}${f.unit}</span>
+      </div>
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:${dispPct}%; background:${color}"></div>
+      </div>
+    </div>`;
+  }).join("");
+  document.getElementById("factor-bars").innerHTML = barsHtml;
+
+  // Recommendations
+  const recos = data.recommendations.map(r => `
+    <div class="reco-item">
+      <div class="reco-icon">${r.icon}</div>
+      <div>
+        <div class="reco-cat">${r.category}</div>
+        <div class="reco-tip">${r.tip}</div>
+      </div>
+    </div>`).join("");
+  document.getElementById("reco-list").innerHTML = recos || "<p style='color:var(--muted)'>No specific recommendations — keep it up!</p>";
+}
+
+// Initialize slider labels
+["sleep_hours","caffeine_mg","alcohol_units","exercise_days","screen_time_min","age","awakenings"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.dispatchEvent(new Event("input"));
+});
+</script>
+</body>
+</html>
